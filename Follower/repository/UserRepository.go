@@ -85,8 +85,8 @@ func (mr *UserRepository) WriteUserToDatabase(user *model.User) error {
 	newUser, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				"CREATE (u:User) SET u.userId = $userId, u.username = $username, u.profileImage = $profileImage RETURN u.username + ', from node ' + id(u)",
-				map[string]any{"userId": user.Id, "username": user.Username, "profileImage": user.ProfileImage})
+				"CREATE (u:User) SET u.id = $id, u.username = $username, u.profileImage = $profileImage RETURN u.username + ', from node ' + id(u)",
+				map[string]any{"id": user.Id, "username": user.Username, "profileImage": user.ProfileImage})
 			if err != nil {
 				return nil, err
 			}
@@ -112,7 +112,7 @@ func (mr *UserRepository) ReadUser(userId string) (model.User, error) {
 	user, err := session.ExecuteRead(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				"MATCH (u {userId: $userId}) RETURN u.userId, u.username, u.profileImage",
+				"MATCH (u {id: $id}) RETURN u.id, u.username, u.profileImage",
 				map[string]any{"userId": userId})
 			if err != nil {
 				return nil, err
@@ -160,7 +160,7 @@ func (mr *UserRepository) GetFollowingsForUser(userId string) (model.Users, erro
 	userResults, err := session.ExecuteRead(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`match (n:User)<-[r:IS_FOLLOWING]-(p:User) where p.userId = $userId return n.userId as id, n.username as username, n.profileImage as pImage`,
+				`match (n:User)<-[r:IS_FOLLOWING]-(p:User) where p.id = $id return n.id as id, n.username as username, n.profileImage as pImage`,
 				map[string]any{"userId": userId})
 			if err != nil {
 				return nil, err
@@ -194,8 +194,8 @@ func (mr *UserRepository) DeleteFollowing(userId string, userToUnfollowId string
 	_, err := session.ExecuteWrite(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				"MATCH (:User {userId: $userId})-[f:IS_FOLLOWING]->(:User {userId: $userToUnfollowId}) DELETE f",
-				map[string]any{"userId": userId, "userToUnfollowId": userToUnfollowId})
+				"MATCH (:User {id: $id})-[f:IS_FOLLOWING]->(:User {id: $userToUnfollowId}) DELETE f",
+				map[string]any{"id": userId, "userToUnfollowId": userToUnfollowId})
 			if err != nil {
 				return nil, err
 			}
@@ -221,8 +221,8 @@ func (mr *UserRepository) GetFollowersForUser(userId string) (model.Users, error
 	userResults, err := session.ExecuteRead(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`match (n:User)<-[r:IS_FOLLOWING]-(p:User) where n.userId = $userId return p.userId as id, p.username as username, p.profileImage as pImage`,
-				map[string]any{"userId": userId})
+				`match (n:User)<-[r:IS_FOLLOWING]-(p:User) where n.id = $id return p.id as id, p.username as username, p.profileImage as pImage`,
+				map[string]any{"id": userId})
 			if err != nil {
 				return nil, err
 			}
@@ -256,8 +256,8 @@ func (mr *UserRepository) Recommendations(userId string) (model.Users, error) {
 	userResults, err := session.ExecuteRead(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`match (n:User), (n)-[:IS_FOLLOWING]->(u:User)-[:IS_FOLLOWING]->(ru:User) where not (n)-[:IS_FOLLOWING]->(ru) and n.userId = $userId return distinct ru.userId as id, ru.username as username, ru.profileImage as pImage`,
-				map[string]any{"userId": userId})
+				`match (n:User), (n)-[:IS_FOLLOWING]->(u:User)-[:IS_FOLLOWING]->(ru:User) where not (n)-[:IS_FOLLOWING]->(ru) and n.id = $id return distinct ru.id as id, ru.username as username, ru.profileImage as pImage`,
+				map[string]any{"id": userId})
 			if err != nil {
 				return nil, err
 			}
