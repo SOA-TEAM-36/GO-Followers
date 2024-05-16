@@ -160,7 +160,7 @@ func (mr *UserRepository) GetFollowingsForUser(userId string) (model.Users, erro
 	userResults, err := session.ExecuteRead(ctx,
 		func(transaction neo4j.ManagedTransaction) (any, error) {
 			result, err := transaction.Run(ctx,
-				`match (n:User)<-[r:IS_FOLLOWING]-(p:User) where p.id = $id return n.id as id, n.username as username, n.profileImage as pImage`,
+				`MATCH (n:User)<-[r:IS_FOLLOWING]-(p:User) WHERE p.id = $userId RETURN n.id AS id, n.username AS username, n.profileImage AS pImage`,
 				map[string]any{"userId": userId})
 			if err != nil {
 				return nil, err
